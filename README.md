@@ -4,6 +4,7 @@
 
 add following config to settings.py
 
+```
 # encoding=utf-8
 mysql_conf = {
     'host': 'localhost',
@@ -12,3 +13,4 @@ mysql_conf = {
     'port': 3306,
     'database': ''
 }
+```

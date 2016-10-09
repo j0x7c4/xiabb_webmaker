@@ -29,45 +29,88 @@ CREATE TABLE `ks_project` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 '''
 
-def import_crawler_data(path):
-    with open(path) as f:
+
+def store_crawler_data(path):
+    try:
         db = MySQLdb.connect(host=mysql_conf['host'], user=mysql_conf['user'],
                              passwd=mysql_conf['password'], db=mysql_conf['database'], charset='utf8')
         cursor = db.cursor()
-        for line in f:
-            try:
-                p = json.loads(line.strip())
-                p['backers_count'] = p['backers_count'].replace(',','')
-                h = hashlib.md5(p['url']).hexdigest()
-                url = 'crawler.xiabb.me/' + h
-                sql = """
-                INSERT INTO %s (name,creator,url,category_tag,content,backers_count,pledged,location,remote_url)
-                VALUES ("%s","%s","%s","%s","%s",%s,"%s","%s","%s")
-                ON DUPLICATE KEY
-                UPDATE url="%s", category_tag="%s", content="%s", backers_count=%s, pledged="%s", location="%s", remote_url="%s"
-                """ % (
-                    table,
-                    MySQLdb.escape_string(p['name'].encode('utf-8')),
-                    MySQLdb.escape_string(p['creator'].encode('utf-8')),
-                    MySQLdb.escape_string(url.encode('utf-8')),
-                    MySQLdb.escape_string(p['category_tag'].encode('utf-8')),
-                    MySQLdb.escape_string(p['content'].encode('utf-8')),
-                    MySQLdb.escape_string(p['backers_count'].encode('utf-8')),
-                    MySQLdb.escape_string(p['pledged'].encode('utf-8')),
-                    MySQLdb.escape_string(p['location'].encode('utf-8')),
-                    MySQLdb.escape_string(p['url'].encode('utf-8')),
-                    MySQLdb.escape_string(url.encode('utf-8')),
-                    MySQLdb.escape_string(p['category_tag'].encode('utf-8')),
-                    MySQLdb.escape_string(p['content'].encode('utf-8')),
-                    MySQLdb.escape_string(p['backers_count'].encode('utf-8')),
-                    MySQLdb.escape_string(p['pledged'].encode('utf-8')),
-                    MySQLdb.escape_string(p['location'].encode('utf-8')),
-                    MySQLdb.escape_string(p['url'].encode('utf-8')),
-                )
-                cursor.execute(sql)
-            except Exception, e:
-                print >> sys.stderr, e
-        db.commit()
+        with open(path) as f:
+            cnt = 0
+            for line in f:
+                cnt += 1
+                try:
+                    p = json.loads(line.strip())
+                    p['backers_count'] = p['backers_count'].replace(',', '')
+                    h = hashlib.md5(p['url']).hexdigest()
+                    url = 'crawler.xiabb.me/' + h
+                    sql = """
+                    INSERT INTO %s (name,creator,url,category_tag,content,backers_count,pledged,location,remote_url)
+                    VALUES ("%s","%s","%s","%s","%s",%s,"%s","%s","%s")
+                    ON DUPLICATE KEY
+                    UPDATE url="%s", category_tag="%s", content="%s", backers_count=%s, pledged="%s", location="%s", remote_url="%s"
+                    """ % (
+                        table,
+                        MySQLdb.escape_string(p['name'].encode('utf-8')),
+                        MySQLdb.escape_string(p['creator'].encode('utf-8')),
+                        MySQLdb.escape_string(url.encode('utf-8')),
+                        MySQLdb.escape_string(p['category_tag'].encode('utf-8')),
+                        MySQLdb.escape_string(p['content'].encode('utf-8')),
+                        MySQLdb.escape_string(p['backers_count'].encode('utf-8')),
+                        MySQLdb.escape_string(p['pledged'].encode('utf-8')),
+                        MySQLdb.escape_string(p['location'].encode('utf-8')),
+                        MySQLdb.escape_string(p['url'].encode('utf-8')),
+                        MySQLdb.escape_string(url.encode('utf-8')),
+                        MySQLdb.escape_string(p['category_tag'].encode('utf-8')),
+                        MySQLdb.escape_string(p['content'].encode('utf-8')),
+                        MySQLdb.escape_string(p['backers_count'].encode('utf-8')),
+                        MySQLdb.escape_string(p['pledged'].encode('utf-8')),
+                        MySQLdb.escape_string(p['location'].encode('utf-8')),
+                        MySQLdb.escape_string(p['url'].encode('utf-8')),
+                    )
+                    cursor.execute(sql)
+                    if cnt % max_cnt == 0:
+                        db.commit()
+                except Exception, e:
+                    print >> sys.stderr, e
+    except Exception, e:
+        print >> sys.stderr, e
+    finally:
         db.close()
+
+
+def fetch_crawler_data():
+    rows = []
+    res = []
+    try:
+        db = MySQLdb.connect(host=mysql_conf['host'], user=mysql_conf['user'],
+                             passwd=mysql_conf['password'], db=mysql_conf['database'], charset='utf8')
+        cursor = db.cursor()
+        sql = """
+            SELECT name, creator, url, category_tag, content, backers_count, pledged, location, remote_url
+            FROM %s
+            """ % table
+        cursor.execute(sql)
+        rows = cursor.fetchall()
+    except Exception, e:
+        print >> sys.stderr, e
+    finally:
+        db.close()
+    for row in rows:
+        res.append({
+            'name': row[0],
+            'creator': row[1],
+            'url': row[2],
+            'category_tag': row[3],
+            'content': row[4],
+            'backers_count': row[5],
+            'pledged': row[6],
+            'location': row[7],
+            'remote_url': row[8],
+        })
+    return res
+
 if __name__ == "__main__":
-    import_crawler_data('/data/crawlers/ks/ks.jl')
+    store_crawler_data('/data/crawlers/ks/ks.jl')
+    for i in fetch_crawler_data():
+        print i

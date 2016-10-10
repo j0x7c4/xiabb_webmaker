@@ -1,14 +1,14 @@
 <div class="container" role="main" style="margin-top:50px">
 <div id="content">
     <h1>{{ name }}</h1>
-    <p><span class='glyphicon glyphicon-user' />{{ creator }}</p>
+    <p><span class='glyphicon glyphicon-user' /> {{ creator }}</p>
     <p>{{ category_tag }}</p>
-    <p>{{ backers_count }}</p>
-    <p>{{ pledged }}</p>
+    <p><span class='glyphicon glyphicon-heart' /> {{ backers_count }}</p>
+    <p><span class='glyphicon glyphicon-credit-card' />{{ pledged }}</p>
     <p class="important">
       {{ content }}
     </p>
-    <p>{{ location }}</p>
-    <p><span class='glyphicon glyphicon-globe' /><a href='{{ remote_url }}'>查看原文</a></p>
+    <p><span class='glyphicon glyphicon-map-marker' /> {{ location }}</p>
+    <p><span class='glyphicon glyphicon-globe' /><a href='{{ remote_url }}'> 查看原文</a></p>
 </div>
 </div>

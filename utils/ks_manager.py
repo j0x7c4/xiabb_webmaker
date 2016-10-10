@@ -8,8 +8,9 @@ import hashlib
 table = 'ks_project'
 max_cnt = 100
 
+create_table_sql = 
 '''
-CREATE TABLE `ks_project` (
+CREATE TABLE IF NOT EXISTS `ks_project` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `creator` varchar(255) NOT NULL,
@@ -31,10 +32,13 @@ CREATE TABLE `ks_project` (
 
 
 def store_crawler_data(path):
+    db = None
     try:
         db = MySQLdb.connect(host=mysql_conf['host'], user=mysql_conf['user'],
                              passwd=mysql_conf['password'], db=mysql_conf['database'], charset='utf8')
         cursor = db.cursor()
+        cursor.execute(create_table_sql)
+        db.commit()
         with open(path) as f:
             cnt = 0
             for line in f:
@@ -76,12 +80,15 @@ def store_crawler_data(path):
     except Exception, e:
         print >> sys.stderr, e
     finally:
-        db.close()
+        if db:
+            db.commit()
+            db.close()
 
 
 def fetch_crawler_data():
     rows = []
     res = []
+    db = None
     try:
         db = MySQLdb.connect(host=mysql_conf['host'], user=mysql_conf['user'],
                              passwd=mysql_conf['password'], db=mysql_conf['database'], charset='utf8')
@@ -95,7 +102,8 @@ def fetch_crawler_data():
     except Exception, e:
         print >> sys.stderr, e
     finally:
-        db.close()
+        if db:
+            db.close()
     for row in rows:
         res.append({
             'name': row[0],

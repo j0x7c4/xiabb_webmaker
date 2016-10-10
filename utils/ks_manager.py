@@ -8,8 +8,7 @@ import hashlib
 table = 'ks_project'
 max_cnt = 100
 
-create_table_sql = 
-'''
+create_table_sql = '''
 CREATE TABLE IF NOT EXISTS `ks_project` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,

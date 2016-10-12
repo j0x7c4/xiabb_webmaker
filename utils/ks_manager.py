@@ -2,9 +2,10 @@
 import MySQLdb
 import json
 import sys
-from settings import mysql_conf
+from settings import mysql_conf, log_conf
 import hashlib
-
+import logging
+logging.basicConfig(filename=log_conf["filename"],format=log_conf["format"],level=log_conf["level"])
 table = 'ks_project'
 max_cnt = 100
 
@@ -31,6 +32,7 @@ CREATE TABLE IF NOT EXISTS `ks_project` (
 
 
 def store_crawler_data(path):
+    logging.info("start to store data in "+path)
     db = None
     try:
         db = MySQLdb.connect(host=mysql_conf['host'], user=mysql_conf['user'],
@@ -79,6 +81,7 @@ def store_crawler_data(path):
     except Exception, e:
         print >> sys.stderr, e
     finally:
+        logging.info("done ("+str(cnt) + ")")
         if db:
             db.commit()
             db.close()
@@ -118,6 +121,7 @@ def fetch_crawler_data():
     return res
 
 if __name__ == "__main__":
-    store_crawler_data('/data/crawlers/ks/ks.jl')
-    for i in fetch_crawler_data():
-        print i
+    filepath = '/data/crawlers/ks/ks.jl'
+    if len(sys.argv)>1:
+        filepath = sys.argv[1]
+    store_crawler_data(filepath)

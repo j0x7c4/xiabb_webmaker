@@ -13,4 +13,10 @@ mysql_conf = {
     'port': 3306,
     'database': ''
 }
+
+log_conf = {
+    "level": "INFO",
+    "filename": "logs/run.log",
+    "format": "%(asctime)s %(levelname)s: %(message)s"
+}
 ```

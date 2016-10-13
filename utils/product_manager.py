@@ -156,7 +156,7 @@ def store_crawler_data(path):
                         """ % (
                             table_product_img,
                             MySQLdb.escape_string(p['brand'].encode('utf-8')),
-                            MySQLdb.escape_string(img_url.encode('utf-8')),
+                            MySQLdb.escape_string(p['brand_img_url'].encode('utf-8')),
                             MySQLdb.escape_string(p['brand'].encode('utf-8')),
                         )
                         cursor.execute(sql)

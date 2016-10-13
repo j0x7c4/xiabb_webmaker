@@ -10,7 +10,7 @@ logging.basicConfig(filename=log_conf["filename"],format=log_conf["format"],leve
 max_cnt = 100
 
 table_raw_product = 'xiabb_raw_product'
-table_raw_category = 'xiabb_raw_category'
+table_category = 'xiabb_category'
 
 create_xiabb_raw_product_table_sql = '''
 CREATE TABLE IF NOT EXISTS `xiabb_raw_product` (
@@ -35,16 +35,16 @@ CREATE TABLE IF NOT EXISTS `xiabb_raw_product` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 '''
 
-create_xiabb_raw_category_table_sql = '''
-CREATE TABLE IF NOT EXISTS `xiabb_raw_category` (
+create_xiabb_category_table_sql = '''
+CREATE TABLE IF NOT EXISTS `xiabb_category` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `name` varchar(255) NOT NULL,
-    `parent` varchar(255) NOT NULL,
+    `parent` varchar(255) DEFAULT NULL,
     `add_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     `ts` datetime NOT NULL,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `UK_RAW` (`name`,`parent`,`ts`),
+    UNIQUE KEY `UK_RAW` (`name`,`parent`),
     KEY `ADDTIME` (`add_time`),
     KEY `UPDATETIME` (`update_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -60,7 +60,7 @@ def store_crawler_data(path):
                              passwd=mysql_conf['password'], db=mysql_conf['database'], charset='utf8')
         cursor = db.cursor()
         cursor.execute(create_xiabb_raw_product_table_sql)
-        cursor.execute(create_xiabb_raw_category_table_sql)
+        cursor.execute(create_xiabb_category_table_sql)
         db.commit()
         with open(path) as f:
 
@@ -97,15 +97,21 @@ def store_crawler_data(path):
                         if p['parent'] is not None:
                             sql = '''
                                 INSERT INTO %s (name, parent, ts) VALUES("%s", "%s", "%s")
-                            ''' % (table_raw_category,
+                                ON DUPLICATE KEY
+                                UPDATE ts = "%s"
+                            ''' % (table_category,
                                    MySQLdb.escape_string(p['name'].encode('utf-8')),
                                    MySQLdb.escape_string(p['parent'].encode('utf-8')),
+                                   MySQLdb.escape_string(p['ts'].encode('utf-8')),
                                    MySQLdb.escape_string(p['ts'].encode('utf-8')))
                         else:
                             sql = '''
                                 INSERT INTO %s (name, ts) VALUES("%s", "%s")
-                            ''' % (table_raw_category,
+                                ON DUPLICATE KEY
+                                UPDATE ts = "%s"
+                            ''' % (table_category,
                                    MySQLdb.escape_string(p['name'].encode('utf-8')),
+                                   MySQLdb.escape_string(p['ts'].encode('utf-8')),
                                    MySQLdb.escape_string(p['ts'].encode('utf-8')))
 
                     cursor.execute(sql)
@@ -159,6 +165,6 @@ def fetch_product_data():
 
 if __name__ == "__main__":
     filepath = '/data/crawlers/sephora_cn/sephora_cn.jl'
-    if len(sys.argv)>1:
+    if len(sys.argv) > 1:
         filepath = sys.argv[1]
     store_crawler_data(filepath)

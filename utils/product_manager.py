@@ -118,7 +118,7 @@ def store_crawler_data(path):
                     if cnt % max_cnt == 0:
                         db.commit()
                 except Exception, e:
-                    print >> sys.stderr, e, p
+                    print >> sys.stderr, e
     except Exception, e:
         print >> sys.stderr, e
     finally:

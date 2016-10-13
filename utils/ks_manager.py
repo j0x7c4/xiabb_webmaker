@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS `ks_project` (
 def store_crawler_data(path):
     logging.info("start to store data in "+path)
     db = None
+    cnt = 0
     try:
         db = MySQLdb.connect(host=mysql_conf['host'], user=mysql_conf['user'],
                              passwd=mysql_conf['password'], db=mysql_conf['database'], charset='utf8')
@@ -41,7 +42,6 @@ def store_crawler_data(path):
         cursor.execute(create_table_sql)
         db.commit()
         with open(path) as f:
-            cnt = 0
             for line in f:
                 cnt += 1
                 try:
